@@ -9,32 +9,52 @@ All colors MUST be HSL.
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    --foreground: 216 12% 8%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 216 12% 8%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 216 12% 8%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 0 0% 98%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 142 15% 96%;
+    --secondary-foreground: 142 76% 20%;
 
-    --muted: 210 40% 96.1%;
+    --muted: 142 15% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 142 15% 96%;
+    --accent-foreground: 142 76% 20%;
 
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --border: 142 20% 88%;
+    --input: 142 20% 95%;
+    --ring: 142 76% 36%;
+
+    /* Custom environmental theme colors */
+    --eco-primary: 142 76% 36%;
+    --eco-primary-light: 142 76% 45%;
+    --eco-secondary: 47 88% 63%;
+    --eco-accent: 196 78% 45%;
+    --eco-success: 120 100% 25%;
+    --eco-warning: 45 93% 47%;
+    
+    /* Gradients */
+    --gradient-eco: linear-gradient(135deg, hsl(var(--eco-primary)), hsl(var(--eco-accent)));
+    --gradient-earth: linear-gradient(135deg, hsl(var(--eco-primary)), hsl(var(--eco-secondary)));
+    --gradient-subtle: linear-gradient(180deg, hsl(var(--background)), hsl(var(--secondary)));
+    
+    /* Shadows */
+    --shadow-eco: 0 10px 30px -10px hsl(var(--eco-primary) / 0.3);
+    --shadow-soft: 0 4px 20px -4px hsl(216 12% 8% / 0.1);
+    
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 
     --radius: 0.5rem;
 
