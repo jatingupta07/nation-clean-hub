@@ -4,18 +4,66 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Leaf, ArrowLeft } from "lucide-react";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, useSearchParams, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Login = () => {
   const [searchParams] = useSearchParams();
   const defaultRole = searchParams.get('role') || 'citizen';
   const [selectedRole, setSelectedRole] = useState(defaultRole);
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This will require Supabase integration for authentication
-    console.log('Login attempted with role:', selectedRole);
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Login failed",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Login successful",
+        description: "Welcome back!",
+      });
+
+      // Redirect based on role
+      switch (selectedRole) {
+        case 'admin':
+          navigate('/admin');
+          break;
+        case 'worker':
+        case 'committee':
+          navigate('/citizen'); // For now, redirect to citizen dashboard
+          break;
+        default:
+          navigate('/citizen');
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Login failed",
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -54,11 +102,13 @@ const Login = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="email">Email or Phone</Label>
+                <Label htmlFor="email">Email</Label>
                 <Input 
                   id="email" 
-                  type="text" 
-                  placeholder="Enter your email or phone number"
+                  type="email" 
+                  placeholder="Enter your email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   required 
                 />
               </div>
@@ -69,12 +119,14 @@ const Login = () => {
                   id="password" 
                   type="password" 
                   placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                   required 
                 />
               </div>
 
-              <Button type="submit" variant="eco" className="w-full">
-                Login
+              <Button type="submit" variant="eco" className="w-full" disabled={loading}>
+                {loading ? "Logging in..." : "Login"}
               </Button>
 
               <div className="text-center space-y-2">
@@ -90,12 +142,6 @@ const Login = () => {
               </div>
             </form>
 
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Full authentication requires Supabase integration. 
-                This demo shows the UI structure for the login system.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>

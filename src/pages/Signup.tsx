@@ -5,16 +5,94 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Leaf, ArrowLeft } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const Signup = () => {
   const [selectedRole, setSelectedRole] = useState('citizen');
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    location: '',
+    password: '',
+    confirmPassword: ''
+  });
+  const [loading, setLoading] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
+  const navigate = useNavigate();
+  const { toast } = useToast();
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData(prev => ({ ...prev, [field]: e.target.value }));
+  };
+
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
-    // This will require Supabase integration for authentication
-    console.log('Signup attempted with role:', selectedRole);
+    
+    if (formData.password !== formData.confirmPassword) {
+      toast({
+        variant: "destructive",
+        title: "Password mismatch",
+        description: "Passwords do not match",
+      });
+      return;
+    }
+
+    if (!termsAccepted) {
+      toast({
+        variant: "destructive",
+        title: "Terms required",
+        description: "Please accept the terms and conditions",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const { error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          emailRedirectTo: `${window.location.origin}/`,
+          data: {
+            first_name: formData.firstName,
+            last_name: formData.lastName,
+            phone: formData.phone,
+            location: formData.location,
+            role: selectedRole
+          }
+        }
+      });
+
+      if (error) {
+        toast({
+          variant: "destructive",
+          title: "Signup failed",
+          description: error.message,
+        });
+        return;
+      }
+
+      toast({
+        title: "Account created successfully",
+        description: "Please check your email to verify your account",
+      });
+
+      navigate('/login');
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Signup failed",
+        description: "An unexpected error occurred",
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -43,6 +121,8 @@ const Signup = () => {
                   <Input 
                     id="firstName" 
                     placeholder="John"
+                    value={formData.firstName}
+                    onChange={handleInputChange('firstName')}
                     required 
                   />
                 </div>
@@ -51,6 +131,8 @@ const Signup = () => {
                   <Input 
                     id="lastName" 
                     placeholder="Doe"
+                    value={formData.lastName}
+                    onChange={handleInputChange('lastName')}
                     required 
                   />
                 </div>
@@ -62,6 +144,8 @@ const Signup = () => {
                   id="email" 
                   type="email" 
                   placeholder="john@example.com"
+                  value={formData.email}
+                  onChange={handleInputChange('email')}
                   required 
                 />
               </div>
@@ -72,6 +156,8 @@ const Signup = () => {
                   id="phone" 
                   type="tel" 
                   placeholder="+1234567890"
+                  value={formData.phone}
+                  onChange={handleInputChange('phone')}
                   required 
                 />
               </div>
@@ -95,6 +181,8 @@ const Signup = () => {
                 <Input 
                   id="location" 
                   placeholder="Your city or area"
+                  value={formData.location}
+                  onChange={handleInputChange('location')}
                   required 
                 />
               </div>
@@ -105,6 +193,8 @@ const Signup = () => {
                   id="password" 
                   type="password" 
                   placeholder="Create a strong password"
+                  value={formData.password}
+                  onChange={handleInputChange('password')}
                   required 
                 />
               </div>
@@ -115,12 +205,19 @@ const Signup = () => {
                   id="confirmPassword" 
                   type="password" 
                   placeholder="Confirm your password"
+                  value={formData.confirmPassword}
+                  onChange={handleInputChange('confirmPassword')}
                   required 
                 />
               </div>
 
               <div className="flex items-center space-x-2">
-                <Checkbox id="terms" required />
+                <Checkbox 
+                  id="terms" 
+                  checked={termsAccepted}
+                  onCheckedChange={(checked) => setTermsAccepted(checked as boolean)}
+                  required 
+                />
                 <label
                   htmlFor="terms"
                   className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
@@ -136,8 +233,8 @@ const Signup = () => {
                 </label>
               </div>
 
-              <Button type="submit" variant="eco" className="w-full">
-                Create Account
+              <Button type="submit" variant="eco" className="w-full" disabled={loading}>
+                {loading ? "Creating Account..." : "Create Account"}
               </Button>
 
               <div className="text-center text-sm text-muted-foreground">
@@ -148,12 +245,6 @@ const Signup = () => {
               </div>
             </form>
 
-            <div className="mt-6 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-              <p className="text-sm text-yellow-800">
-                <strong>Note:</strong> Full user registration requires Supabase integration. 
-                This demo shows the UI structure for the signup system.
-              </p>
-            </div>
           </CardContent>
         </Card>
       </div>
